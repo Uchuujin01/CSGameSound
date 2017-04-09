@@ -34,22 +34,41 @@ nchnls = 2
 0dbfs = 1
 seed 0
 
-iNumOfObj 	= 2
-iObjInd 	= 0
-
 /* room parameters */
 
 idep    =  3    /* early reflection depth       */
 
-itmp    ftgen   1, 0, 64, -2,                                           \
+gitmp1    ftgen   1, 0, 64, -2,                                           \
 		/* depth1, depth2, max delay, IR length, idist, seed */ \
-		idep, 48, -1, 0.01, 0.25, 123,                          \
-		1, 21.982, 0.05, 0.87, 4000.0, 0.6, 0.7, 2, /* ceil  */ \
-		1,  1.753, 0.05, 0.87, 3500.0, 0.5, 0.7, 2, /* floor */ \
-		1, 15.220, 0.05, 0.87, 5000.0, 0.8, 0.7, 2, /* front */ \
-		1,  9.317, 0.05, 0.87, 5000.0, 0.8, 0.7, 2, /* back  */ \
-		1, 17.545, 0.05, 0.87, 5000.0, 0.8, 0.7, 2, /* right */ \
-		1, 12.156, 0.05, 0.87, 5000.0, 0.8, 0.7, 2  /* left  */ 
+		idep, 48, -1, 0.01, 0.25, 123,                          \ 	;3
+		1, 21.982, 0.05, 0.87, 4000.0, 0.6, 0.7, 2, /* ceil  */ \ 	;9
+		1,  1.753, 0.05, 0.87, 3500.0, 0.5, 0.7, 2, /* floor */ \	;13
+		1, 15.220, 0.05, 0.87, 5000.0, 0.8, 0.7, 2, /* front */ \	;25
+		1,  9.317, 0.05, 0.87, 5000.0, 0.8, 0.7, 2, /* back  */ \	;33
+		1, 17.545, 0.05, 0.87, 5000.0, 0.8, 0.7, 2, /* right */ \	;41
+		1, 12.156, 0.05, 0.87, 5000.0, 0.8, 0.7, 2  /* left  */ 	;49
+
+; idep    =  3    /* early reflection depth       */
+
+; gitmp1    ftgen   1, 0, 64, -2,                                           \
+; 		/* depth1, depth2, max delay, IR length, idist, seed */ \
+; 		idep, 48, -1, 0.01, 0.25, 123,                          \ 	;3
+; 		1, 21.982, 0.05, 0.87, 4000.0, 0.6, 0.7, 2, /* ceil  */ \ 	;9
+; 		1,  1.753, 0.05, 0.87, 3500.0, 0.5, 0.7, 2, /* floor */ \	;13
+; 		1, 15.220, 0.05, 0.87, 5000.0, 0.8, 0.7, 2, /* front */ \	;25
+; 		1,  9.317, 0.05, 0.87, 5000.0, 0.8, 0.7, 2, /* back  */ \	;33
+; 		1, 17.545, 0.05, 0.87, 5000.0, 0.8, 0.7, 2, /* right */ \	;41
+; 		1, 12.156, 0.05, 0.87, 5000.0, 0.8, 0.7, 2  /* left  */ 	;49
+
+gitmp2    ftgen   2, 0, 64, -2,                                           \
+		/* depth1, depth2, max delay, IR length, idist, seed */ \
+		idep, 48, -1, 0.01, 0.25, 123,                          \ 	;3
+		1, 0, 0.05, 0.87, 4000.0, 0.6, 0.7, 2, /* ceil  */ \ 	;9
+		1,  0, 0.05, 0.87, 3500.0, 0.5, 0.7, 2, /* floor */ \	;13
+		1, 0, 0.05, 0.87, 5000.0, 0.8, 0.7, 2, /* front */ \	;25
+		1,  0, 0.05, 0.87, 5000.0, 0.8, 0.7, 2, /* back  */ \	;33
+		1, 0, 0.05, 0.87, 5000.0, 0.8, 0.7, 2, /* right */ \	;41
+		1, 0, 0.05, 0.87, 5000.0, 0.8, 0.7, 2  /* left  */ 	;49
 
 instr	1
  event_i "i", 2, 0, -1
@@ -61,25 +80,46 @@ instr	1
  if changed(kThunder)==1 then
   event	"i",3,0,kThunderDur,kThunderDist
   event	"i",3,0,kThunderDur,kThunderDist
+
  endif 
  endin
-
  instr 12
+	 ;event_i "i", 799, 0, -1
+
+	  ktrigger init 1
+ Sstep		chnget  "StepsIndex"
  kStep		chnget	"Steps"	; on/off
  kStepDur	chnget	"StepsDur"	; on/off
  kStepDist	scale	chnget:k("StepsDist"),1,1.7
+ ; iComp       strcmp     "StepsChan0", Sstep
+ ; if iComp == 0 then
  if changed(kStep)==1 then
-  event	"i",333,0,kStepDur,kStepDist
+ 	if (ktrigger == 0) goto contin
+ 	event "i", 799, 0, 0.5
+ 	ktrigger = 0
+ contin:
   event	"i",333,0,kStepDur,kStepDist
  endif
 endin
 
 instr 13
+; event_i "i", 800, 0, -1
+;  event_i "i", 801, 0, -1
+; event_i "i", 802, 0, -1
+; event_i "i", 803, 0, -1
+; event_i "i", 804, 0, -1
+; event_i "i", 805, 0, -1
+; event_i "i", 806, 0, -1
+; event_i "i", 807, 0, -1
+; event_i "i", 808, 0, -1
+; event_i "i", 809, 0, -1
  kShot		chnget	"Shots"	; on/off
  kShotDur	chnget	"ShotsDur"	; on/off
  kShotDist	scale	chnget:k("ShotsDist"),1,1.7
  if changed(kShot)==1 then
-  event	"i",444,0,kShotDur,kShotDist
+ ; event "i", 800, 0, -1
+ ; event "i", 801, 0, -1
+ ; event "i", 802, 0, -1
   event	"i",444,0,kShotDur,kShotDist
  endif 
 
@@ -139,8 +179,48 @@ instr		3	; thunder
  		chnmix	aR*0.15, "SendR" 		
 endin
 
+instr 222
+	kRoomFwd	chnget	"FwdDist"
+	kRoomBwd	chnget	"BwdDist"
+	kRoomLft	chnget	"LftDist"
+	kRoomRgt	chnget	"RgtDist"
+	kRoomUp		chnget	"UpDist"
+	kRoomDwn	chnget	"DwnDist"
+
+	ioffset init -3
+
+	if changed(kRoomFwd)==1 then
+	tableiw  i(kRoomFwd), 26+ioffset, gitmp1
+	endif
+	if changed(kRoomBwd)==1 then
+	tableiw  i(kRoomBwd), 34+ioffset, gitmp1
+	endif
+	if changed(kRoomLft)==1 then
+	tableiw  i(kRoomLft), 50+ioffset, gitmp1
+	endif
+	if changed(kRoomRgt)==1 then
+	tableiw  i(kRoomRgt), 42+ioffset, gitmp1
+	endif
+	if changed(kRoomUp)==1 then
+	tableiw  i(kRoomUp), 10+ioffset, gitmp1
+	endif
+	if changed(kRoomDwn)==1 then
+	tableiw  i(kRoomDwn), 18+ioffset, gitmp1
+	endif
+
+	; tableiw  i(kRoomFwd), 26+ioffset, gitmp1
+	; tableiw  i(kRoomBwd), 34+ioffset, gitmp1
+	; tableiw  i(kRoomLft), 50+ioffset, gitmp1
+	; tableiw  i(kRoomRgt), 42+ioffset, gitmp1
+	; tableiw  i(kRoomUp), 10+ioffset, gitmp1
+	; tableiw  i(kRoomDwn), 18+ioffset, gitmp1
+endin
+
 instr		333	; step
  Sstep		chnget  "StepsIndex"
+
+ ktrigger init 1
+
  kenv		expseg 1, p3-3.5, 0.01
  aNse		pinkish	kenv*0.5
  kCF		expon		p4,p3,0.001
@@ -152,6 +232,36 @@ instr		333	; step
  ;aL,aR	pan2		aNse,ipan
  		;aL,aR	pan2		aNse, .5
  		;outs		aL, aR
+
+  	iRoomFwd	chnget	"FwdDist"
+	iRoomBwd	chnget	"BwdDist"
+	iRoomLft	chnget	"LftDist"
+	iRoomRgt	chnget	"RgtDist"
+	iRoomUp		chnget	"UpDist"
+	iRoomDwn	chnget	"DwnDist"
+
+	 ioffset init -3
+
+	tableiw  iRoomFwd, 26+ioffset, gitmp1
+	tableiw  iRoomBwd, 34+ioffset, gitmp1
+	tableiw  iRoomLft, 50+ioffset, gitmp1
+	tableiw  iRoomRgt, 42+ioffset, gitmp1
+	tableiw  iRoomUp, 10+ioffset, gitmp1
+	tableiw  iRoomDwn, 18+ioffset, gitmp1
+
+ival tab_i 26+ioffset, gitmp1
+chnset ival, "Answer1"
+ival tab_i 34+ioffset, gitmp1
+chnset ival, "Answer2"
+ival tab_i 50+ioffset, gitmp1
+chnset ival, "Answer3"
+ival tab_i 42+ioffset, gitmp1
+chnset ival, "Answer4"
+ival tab_i 10+ioffset, gitmp1
+chnset ival, "Answer5"
+ival tab_i 18+ioffset, gitmp1
+chnset ival, "Answer6"
+	
 		chnmix	aNse, Sstep						; also send to the reverb	
 endin
 
@@ -168,6 +278,7 @@ instr		444	; Shot
  ;aL,aR	pan2		aNse,ipan
  		;aL,aR	pan2		aNse, .5
  		;outs		aL, aR
+
 		chnmix	aNse, Sstep						; also send to the reverb
 endin
 
@@ -226,8 +337,7 @@ instr		999	; reverb
 endin
 
 instr 799
-
- aRetIn		chnget	"StepsChan0"
+aRetIn		chnget	"StepsChan0"
 
 kSndX       chnget	"StepsX0"
 kSndY       chnget	"StepsY0"
@@ -240,18 +350,28 @@ imode   =  1    ; change this to 3 for 8 spk in a cube,
 idist	=  1
 iovr	=  2
 
-aW, aX, aY, aZ  spat3d aRetIn, kSndX, kSndY, kSndZ, idist, 0, imode, 2, iovr
+aW, aX, aY, aZ  spat3d aRetIn, kSndX, kSndY, kSndZ, idist, 1, imode, 2, iovr
 
 aW      =  aW * 1.4142
 
 ; stereo
-aL     =  aW + aY              /* left                 */
-aR     =  aW - aY              /* right                */
+; aL     =  aW + aY              /* left                 */
+; aR     =  aW - aY              /* right                */
+
+aWre, aWim	hilbert aW
+aXre, aXim	hilbert aX
+aYre, aYim	hilbert aY
+
+aWXre	=  0.0928*aXre + 0.4699*aWre
+aWXim	=  0.2550*aXim - 0.1710*aWim
+
+aL	=  aWXre + aWXim + 0.3277*aYre
+aR	=  aWXre - aWXim - 0.3277*aYre
 
 	outs aL, aR
 
 	chnclear	"StepsChan0"
-
+	;turnoff
 	endin
 
 instr 800
@@ -269,13 +389,24 @@ imode   =  1    ; change this to 3 for 8 spk in a cube,
 idist	=  1
 iovr	=  2
 
-aW, aX, aY, aZ  spat3d aRetIn, kSndX, kSndY, kSndZ, idist, 0, imode, 2, iovr
+aW, aX, aY, aZ  spat3d aRetIn, kSndX, kSndY, kSndZ, idist, 1, imode, 2, iovr
 
 aW      =  aW * 1.4142
 
 ; stereo
 aL     =  aW + aY              /* left                 */
 aR     =  aW - aY              /* right                */
+
+;convert to UHJ format (stereo)
+; aWre, aWim	hilbert aW
+; aXre, aXim	hilbert aX
+; aYre, aYim	hilbert aY
+
+; aWXre	=  0.0928*aXre + 0.4699*aWre
+; aWXim	=  0.2550*aXim - 0.1710*aWim
+
+; aL	=  aWXre + aWXim + 0.3277*aYre
+; aR	=  aWXre - aWXim - 0.3277*aYre
 
 	outs aL, aR
 
@@ -298,7 +429,7 @@ imode   =  1    ; change this to 3 for 8 spk in a cube,
 idist	=  1
 iovr	=  2
 
-aW, aX, aY, aZ  spat3d aRetIn, kSndX, kSndY, kSndZ, idist, 0, imode, 2, iovr
+aW, aX, aY, aZ  spat3d aRetIn, kSndX, kSndY, kSndZ, idist, 1, imode, 2, iovr
 
 aW      =  aW * 1.4142
 
@@ -327,7 +458,7 @@ imode   =  1    ; change this to 3 for 8 spk in a cube,
 idist	=  1
 iovr	=  2
 
-aW, aX, aY, aZ  spat3d aRetIn, kSndX, kSndY, kSndZ, idist, 0, imode, 2, iovr
+aW, aX, aY, aZ  spat3d aRetIn, kSndX, kSndY, kSndZ, idist, 1, imode, 2, iovr
 
 aW      =  aW * 1.4142
 
@@ -356,7 +487,7 @@ imode   =  1    ; change this to 3 for 8 spk in a cube,
 idist	=  1
 iovr	=  2
 
-aW, aX, aY, aZ  spat3d aRetIn, kSndX, kSndY, kSndZ, idist, 0, imode, 2, iovr
+aW, aX, aY, aZ  spat3d aRetIn, kSndX, kSndY, kSndZ, idist, 1, imode, 2, iovr
 
 aW      =  aW * 1.4142
 
@@ -385,7 +516,7 @@ imode   =  1    ; change this to 3 for 8 spk in a cube,
 idist	=  1
 iovr	=  2
 
-aW, aX, aY, aZ  spat3d aRetIn, kSndX, kSndY, kSndZ, idist, 0, imode, 2, iovr
+aW, aX, aY, aZ  spat3d aRetIn, kSndX, kSndY, kSndZ, idist, 1, imode, 2, iovr
 
 aW      =  aW * 1.4142
 
@@ -414,7 +545,7 @@ imode   =  1    ; change this to 3 for 8 spk in a cube,
 idist	=  1
 iovr	=  2
 
-aW, aX, aY, aZ  spat3d aRetIn, kSndX, kSndY, kSndZ, idist, 0, imode, 2, iovr
+aW, aX, aY, aZ  spat3d aRetIn, kSndX, kSndY, kSndZ, idist, 1, imode, 2, iovr
 
 aW      =  aW * 1.4142
 
@@ -443,7 +574,7 @@ imode   =  1    ; change this to 3 for 8 spk in a cube,
 idist	=  1
 iovr	=  2
 
-aW, aX, aY, aZ  spat3d aRetIn, kSndX, kSndY, kSndZ, idist, 0, imode, 2, iovr
+aW, aX, aY, aZ  spat3d aRetIn, kSndX, kSndY, kSndZ, idist, 1, imode, 2, iovr
 
 aW      =  aW * 1.4142
 
@@ -472,7 +603,7 @@ imode   =  1    ; change this to 3 for 8 spk in a cube,
 idist	=  1
 iovr	=  2
 
-aW, aX, aY, aZ  spat3d aRetIn, kSndX, kSndY, kSndZ, idist, 0, imode, 2, iovr
+aW, aX, aY, aZ  spat3d aRetIn, kSndX, kSndY, kSndZ, idist, 1, imode, 2, iovr
 
 aW      =  aW * 1.4142
 
@@ -501,7 +632,7 @@ imode   =  1    ; change this to 3 for 8 spk in a cube,
 idist	=  1
 iovr	=  2
 
-aW, aX, aY, aZ  spat3d aRetIn, kSndX, kSndY, kSndZ, idist, 0, imode, 2, iovr
+aW, aX, aY, aZ  spat3d aRetIn, kSndX, kSndY, kSndZ, idist, 1, imode, 2, iovr
 
 aW      =  aW * 1.4142
 
@@ -530,7 +661,7 @@ imode   =  1    ; change this to 3 for 8 spk in a cube,
 idist	=  1
 iovr	=  2
 
-aW, aX, aY, aZ  spat3d aRetIn, kSndX, kSndY, kSndZ, idist, 0, imode, 2, iovr
+aW, aX, aY, aZ  spat3d aRetIn, kSndX, kSndY, kSndZ, idist, 1, imode, 2, iovr
 
 aW      =  aW * 1.4142
 
@@ -559,7 +690,7 @@ imode   =  1    ; change this to 3 for 8 spk in a cube,
 idist	=  1
 iovr	=  2
 
-aW, aX, aY, aZ  spat3d aRetIn, kSndX, kSndY, kSndZ, idist, 0, imode, 2, iovr
+aW, aX, aY, aZ  spat3d aRetIn, kSndX, kSndY, kSndZ, idist, 1, imode, 2, iovr
 
 aW      =  aW * 1.4142
 
@@ -573,23 +704,24 @@ aR     =  aW - aY              /* right                */
 
 	endin
 </CsInstruments>
-<CsScore>
+<CsScore> 
 i1 0 [60*60*24*7] 
 i12 0 [60*60*24*7] 
 i13 0 [60*60*24*7] 
 i999 0 [60*60*24*7]
+;i222 0 [60*60*24*7]
 i 799 0 [60*60*24*7]
-i 800 0 [60*60*24*7]
-i 801 0 [60*60*24*7]
-i 802 0 [60*60*24*7]
-i 803 0 [60*60*24*7]
-i 804 0 [60*60*24*7]
-i 805 0 [60*60*24*7]
-i 806 0 [60*60*24*7]
-i 807 0 [60*60*24*7]
-i 808 0 [60*60*24*7]
-i 809 0 [60*60*24*7]
-i 810 0 [60*60*24*7]
+ i 800 0 [60*60*24*7]
+ ; i 801 0 [60*60*24*7]
+ ; i 802 0 [60*60*24*7]
+ ;i 803 0 [60*60*24*7]
+; i 804 0 [60*60*24*7]
+; i 805 0 [60*60*24*7]
+; i 806 0 [60*60*24*7]
+; i 807 0 [60*60*24*7]
+; i 808 0 [60*60*24*7]
+; i 809 0 [60*60*24*7]
+; i 810 0 [60*60*24*7]
 ;e
 </CsScore>
 </CsoundSynthesizer>
