@@ -1,12 +1,12 @@
 <Cabbage> ;some comment to save changes
 form caption("Weather") size(600, 350), 
-button  bounds(8, 8, 70, 30), text("Thunder"), latched(0), fontcolour:0(100,100,100), channel("Thunder")
+button  bounds(8, 8, 70, 30), text("muteReverb"), latched(0), fontcolour:0(100,100,100), channel("muteReverb")
 rslider bounds(8, 40, 80, 80), channel("ThunderLev"), text("Thunder Level"), range(0, 1, .5, 1, .01)
 rslider bounds(8, 128, 80, 80), channel("ThunderDur"), text("Duration"), range(4, 25, 20)
 rslider bounds(8, 224, 80, 80), channel("ThunderDist"), text("Distance"), range(0, 1, 0.1)
 rslider bounds(104, 40, 80, 80), channel("RainLev"), text("Level"), range(0, 1, .5, 1, .01)
-rslider bounds(104, 128, 80, 80), channel("RainMix"), text("Mix"), range(0, 1, .25)
-rslider bounds(104, 224, 80, 80), channel("RainDens"), text("Density"), range(0, 1, .03)
+rslider bounds(104, 128, 80, 80), channel("GrainMix"), text("Mix"), range(0, 1, .25)
+rslider bounds(104, 224, 80, 80), channel("GrainDens"), text("Density"), range(0, 1, .03)
 rslider bounds(360, 192, 100, 100), channel("gain"), range(0, 1, .03, 1, .01), text("Wind Level"), trackercolour("lime"), outlinecolour(0, 0, 0, 50), textcolour("black")
 rslider bounds(208, 40, 60, 69), channel("band1"), range(.1, 4, .5), text("Freq 1 ")
 rslider bounds(272, 40, 60, 69), channel("band2"), range(.1, 4, .2), text("Freq 2")
@@ -41,23 +41,19 @@ nchnls = 2
 0dbfs = 1
 seed 0
 
-gkBullX init 0
-gkBullY init 0
-gkBullZ init 0
-
 /* room parameters */
 
 idep    =  3    /* early reflection depth       */
 
 gitmp1    ftgen   1, 0, 64, -2,                                           \
 		/* depth1, depth2, max delay, IR length, idist, seed */ \
-		idep, 48, -1, 0.01, 0.25, 123,                          \ 	;3
-		0, 21.982, 0.05, 0.87, 4000.0, 0.6, 0.7, 0, /* ceil  */ \ 	;9
-		0,  1.753, 0.05, 0.87, 3500.0, 0.5, 0.7, 0, /* floor */ \	;13
-		0, 15.220, 0.05, 0.87, 5000.0, 0.8, 0.7, 0, /* front */ \	;25
-		0,  9.317, 0.05, 0.87, 5000.0, 0.8, 0.7, 0, /* back  */ \	;33
-		0, 17.545, 0.05, 0.87, 5000.0, 0.8, 0.7, 0, /* right */ \	;41
-		0, 12.156, 0.05, 0.87, 5000.0, 0.8, 0.7, 0  /* left  */ 	;49
+		idep, 48, -1, 0.01, -1, 123,                          \ 	;3
+		0, 21.982, 0.05, 0.87, 4000.0, 0.6, 0.7, 2, /* ceil  */ \ 	;9
+		0,  1.753, 0.05, 0.87, 3500.0, 0.5, 0.7, 2, /* floor */ \	;13
+		0, 15.220, 0.05, 0.87, 5000.0, 0.8, 0.7, 2, /* front */ \	;25
+		0,  9.317, 0.05, 0.87, 5000.0, 0.8, 0.7, 2, /* back  */ \	;33
+		0, 17.545, 0.05, 0.87, 5000.0, 0.8, 0.7, 2, /* right */ \	;41
+		0, 12.156, 0.05, 0.87, 5000.0, 0.8, 0.7, 2  /* left  */ 	;49
 
 gitmp2    ftgen   2, 0, 64, -2,                                           \
 		/* depth1, depth2, max delay, IR length, idist, seed */ \
@@ -69,9 +65,16 @@ gitmp2    ftgen   2, 0, 64, -2,                                           \
 		1, 0, 0.05, 0.87, 5000.0, 0.8, 0.7, 2, /* right */ \	;41
 		1, 0, 0.05, 0.87, 5000.0, 0.8, 0.7, 2  /* left  */ 	;49
 
+gkSndX init 0
+gkSndY init 0
+gkSndZ init 0
+
+gkWndX init 0
+gkWndY init 0
+gkWndZ init 0
+
 instr	1
  event_i "i", 2, 0, -1
- event_i "i", 4, 0, -1
 
  kThunder		chnget	"Thunder"	; on/off
  kThunderDur	chnget	"ThunderDur"	; on/off
@@ -84,22 +87,28 @@ instr	1
  endin
 
  instr 12
- ;Sstep		chnget  "StepsIndex"
+ event_i "i", "WINDSPAT", 0, -1
  kStep		chnget	"Steps"	; on/off
  kStepDur	chnget	"StepsDur"	; on/off
  kStepMath	scale	chnget:k("StepsMath"),1,1.7
+ kStepWght	scale	chnget:k("StepsWeight"),1,0.1
+ kStepLowP	chnget	"StepsLowPass"	; on/off
+ kStepHighP	chnget	"StepsHighPass"
+
+ kGrainMix	chnget	"GrainMix"
+ kGrainDens	chnget	"GrainDens"
+
 
  if changed(kStep)==1 then
-  event	"i","STEPS",0,kStepDur,kStepMath
+  event	"i","STEPS",0,kStepDur,kStepMath,kStepWght,kStepLowP,kStepHighP
+  event "i", "GRAINS", 0, kStepDur*random(0.005,0.05),kGrainMix,kGrainDens
   event "i", 799, 0,-1
+  ; event "i", "WINDSPAT", 0, -1
  endif
- 	kspat active "STEPS"
- 	if (kspat > 0) then
- 	event_i "i", 799, 0, -1
-  endif
- ;   if changed(kStep)==0 then
- ;  event "i", 799, 0,0.5
- ; endif
+ 	; kspat active "STEPS"
+ 	; if (kspat > 0) then
+ 	 event_i "i", 799, 0, -1
+  ; endif
 endin
 
 instr 13
@@ -193,7 +202,17 @@ instr 14
 endin
 
 instr 2
+
+kGain 		chnget   "SandGain"
+ kTrig	dust		1, 1000;*0.5
+ kenv		linsegr	0,2,1,5,0
+ ;kenv		linsegr	1,random(0.001,0.05),0.8,random(0.001,0.05),0
+ schedkwhen	kTrig, 0, 0, "SAND", 0, 0.008, kenv*(1-sqrt(0.5)), kGain
+
 kGain chnget "gain"
+gkWndX       chnget	"WindX0"
+gkWndY       chnget	"WindY0"
+gkWndZ       chnget	"WindZ0"
 
 aNoise pinker
 
@@ -209,26 +228,32 @@ kPan4 = kPan4+.5
 kLowFreqWindSpeed = 100+randi:k(50, chnget:k("band1"), 1)
 chnset kLowFreqWindSpeed, "lowFreqWindSpeed"
 aLow butterlp aNoise, kLowFreqWindSpeed
-aMid1 butterbp aNoise, 200+randi:k(100, chnget:k("band2"), 1), 100
+aMid1 butterbp aNoise, 100+randi:k(100, chnget:k("band2"), 1), 100
 aMid2 butterbp aNoise, 800+randi:k(300, chnget:k("band3"), 1), 400
-aHigh butterbp aNoise, 2000+randi:k(500, chnget:k("band4"), 1), chnget:k ("bw1")
+aHigh butterbp aNoise, 2000+randi:k(500, chnget:k("band4"), 1), 200;chnget:k ("bw1")
 
-aLowL, aLowR pan2 aLow*chnget:k("amp1"), random(0, 1) 
-aMid1L, aMid1R pan2 aMid1*chnget:k("amp2"), random(0, 1) 
-aMid2L, aMid2R pan2 aMid2*chnget:k("amp3"), random(0, 1) 
-aHighL, aHighR pan2 aHigh*chnget:k("amp4"), random(0, 1) 
+aLowL, aLowR pan2 aLow*chnget:k("amp1"), 0.5;random(0, 1) 
+aMid1L, aMid1R pan2 aMid1*chnget:k("amp2"), 0.5;random(0, 1) 
+aMid2L, aMid2R pan2 aMid2*chnget:k("amp3"), 0.5;random(0, 1) 
+aHighL, aHighR pan2 aHigh*chnget:k("amp4"), 0.5;random(0, 1) 
 
-aLeft = aLowL+aMid1L+aMid2L+aHighL
-aLeft comb aLeft, 2, .5
+aLeftLow = aLowL+aMid1L;+aMid2L+aHighL
+aRightLow = aLowR+aMid1R;+aMid2R+aHighR
+aLeftHigh = aMid2L+aHighL
+aRightHigh = aMid2R+aHighR
+aLeftLow comb aLeftLow, 0.5, .5
+aRightLow comb aRightLow, 0.5, .33
 
-aRight = aLowR+aMid1R+aMid2R+aHighR
-aRight comb aRight, 2, .33
+aLeftHigh comb aLeftHigh, 0.5, .5
+; aRightHigh comb aRightHigh, 0.5, .33
 
-if chnget:k ("muteReverb") == 1  then
-aLeft, aRight reverbsc aLeft, aRight, chnget:k("reverbSize") , chnget:k("reverbFCO")
-endif
+; if chnget:k ("muteReverb") == 1  then
+; aLeft, aRight reverbsc aLeft*0.8, aRight*0.8, 0.9, 1000;chnget:k("reverbSize") , chnget:k("reverbFCO")
+; endif
 
-outs aLeft*kGain, aRight*kGain
+outs aLeftLow*kGain, aRightLow*kGain
+
+chnmix	(aLeftHigh)*kGain, "WindChan0"
 
 endin
 
@@ -248,14 +273,15 @@ endin
 
 instr		STEPS	; step
  Sstep		chnget  "StepsIndex"
+ kGain 		chnget  "StepsGain"
 
  kenv		expseg 1, p3-3.5, 0.01
- aNse		pinkish	kenv*0.5
- kCF		expon		p4,p3,0.001
- kCFoct		randomh	2*kCF,6*kCF, expon:k(100, p3, 50)
+ aNse		pinkish	kenv*2
+ kCF		expon		p4,p3,0.0001
+ kCFoct		randomh	3*kCF*p5,6*kCF*p5, expon:k(100, p3, 10)
  aNse		reson		aNse,a(cpsoct(kCFoct)*5),a(cpsoct(kCFoct)*5),1
- aNse		butterhp		aNse, 100
- aNse		butlp		aNse, 3000
+ aNse		butterhp		aNse, p6
+ aNse		butlp		aNse, p7
  ;ipan		random	0,1
  ;aL,aR	pan2		aNse,ipan
  		;aL,aR	pan2		aNse, .5
@@ -282,10 +308,17 @@ instr		STEPS	; step
 	kLevelUp	chnget	"UpLevel"
 	kLevelDwn	chnget	"DwnLevel"
 
+	gkSndX       chnget	"StepsX0"
+	gkSndY       chnget	"StepsY0"
+	gkSndZ       chnget	"StepsZ0"
+
 	ioffset init -3
 	kison 	init 0
+	kmdel 	init 0
+	kmdel = (3 + 1) * sqrt((kRoomFwd + kRoomBwd)*(kRoomFwd + kRoomBwd) + (kRoomUp + kRoomDwn)*(kRoomUp + kRoomDwn) + (kRoomLft + kRoomRgt)*(kRoomLft + kRoomRgt)) / 340.0 ;(R + 1) * sqrt(W*W + H*H + D*D) / 340.0
+	tablew  kmdel, 10+ioffset-5, gitmp1
 
-	if kRoomFwd == 100 then
+	if kRoomFwd == 0 then
 	kison = 0
 	tablew  kison, 26+ioffset-1, gitmp1
 	else
@@ -295,7 +328,7 @@ instr		STEPS	; step
 	tablew  kFreqFwd, 26+ioffset+3, gitmp1
 	tablew  kLevelFwd, 26+ioffset+2, gitmp1
 	endif
-	if kRoomBwd == 100 then
+	if kRoomBwd == 0 then
 	kison = 0
 	tablew  kison, 34+ioffset-1, gitmp1
 	else
@@ -305,7 +338,7 @@ instr		STEPS	; step
 	tablew  kFreqBwd, 34+ioffset+3, gitmp1
 	tablew  kLevelBwd, 34+ioffset+2, gitmp1
 	endif
-	if kRoomLft == 100 then
+	if kRoomLft == 0 then
 	kison = 0
 	tablew  kison, 50+ioffset-1, gitmp1
 	else
@@ -315,7 +348,7 @@ instr		STEPS	; step
 	tablew  kFreqLft, 50+ioffset+3, gitmp1
 	tablew  kLevelLft, 50+ioffset+2, gitmp1
 	endif
-	if kRoomRgt == 100 then
+	if kRoomRgt == 0 then
 	kison = 0
 	tablew  kison, 42+ioffset-1, gitmp1
 	else
@@ -325,7 +358,7 @@ instr		STEPS	; step
 	tablew  kFreqRgt, 42+ioffset+3, gitmp1
 	tablew  kLevelRgt, 42+ioffset+2, gitmp1
 	endif
-	if kRoomUp == 100 then
+	if kRoomUp == 0 then
 	kison = 0
 	tablew  kison, 10+ioffset-1, gitmp1
 	else
@@ -335,7 +368,7 @@ instr		STEPS	; step
 	tablew  kFreqUp, 10+ioffset+3, gitmp1
 	tablew  kLevelUp, 10+ioffset+2, gitmp1
 	endif
-	if kRoomDwn == 100 then
+	if kRoomDwn == 0 then
 	kison = 0
 	tablew  kison, 18+ioffset-1, gitmp1
 	else
@@ -346,7 +379,7 @@ instr		STEPS	; step
 	tablew  kLevelDwn, 18+ioffset+2, gitmp1
 	endif
 	
-		chnmix	aNse*4, Sstep						; also send to the reverb	
+		chnmix	aNse*kGain, Sstep						; also send to the reverb	
 endin
 
 instr		SHOTS	; Shot
@@ -444,21 +477,22 @@ aCar2 oscil kAmp2, 300 + aMod*aCar1*kMod*0.5  ;Carrier - несущая
  		chnmix	aCar2*0.1, "SurSendR" 		
 endin
 
-instr		4	; rain
- kRainMix	chnget	"RainMix"
- kRainDens	chnget	"RainDens"
- 
- kTrig	dust		1, 1000*kRainDens
- kenv		linsegr	0,2,1,5,0
- 		schedkwhen	kTrig, 0, 0, 5, 0, 0.008, kenv*(1-sqrt(kRainMix))
- aNse	dust2		0.1*kenv*sqrt(kRainMix),3000*kRainDens
- aNse2	dust2		0.1*kenv*sqrt(kRainMix),1500*kRainDens
- aNse	butlp		aNse, 1000
- aNse2	butlp		aNse2, 1000
- 		outs		aNse,aNse2
+instr		GRAINS	; grains
+Sstep		chnget  "StepsIndex"
+
+ kTrig	dust		1, 1000*p5
+ ; kenv		linsegr	0,2,1,5,0
+ kenv		linsegr	1,random(0.001,0.05),0.8,random(0.001,0.05),0
+ 		;schedkwhen	kTrig, 0, 0, 5, 0, 0.008, kenv*(1-sqrt(kGrainMix))
+ ;aNse	dust2		0.1*kenv*sqrt(kGrainMix),3000*kGrainDens
+ aNse2	dust2		0.1*kenv*sqrt(p4),1500*p5
+ ;aNse	butlp		aNse, 400
+ aNse2	butlp		aNse2, 250
+ 		;outs		aNse,aNse2
+ 		chnmix	aNse2, Sstep	
 endin
 
-instr		5	; rain
+instr		SAND	; rain
  iCPS1		random	10,11
  iCPS2		random	13,14
  idB		random	-10,-32
@@ -468,9 +502,11 @@ instr		5	; rain
  aSig		buthp		aSig,9000
  ipan		random	0,1
  aL,aR	pan2		aSig,ipan
- 		outs		aL, aR
-		chnmix	aL*0.3, "SendL"						; also send to the reverb
- 		chnmix	aR*0.3, "SendR" 		
+ 		outs		aL*p5, aR*p5
+		chnmix	aL*p5/3, "SendL"						; also send to the reverb
+ 		chnmix	aR*p5/3, "SendR" 
+
+ 		chnmix	aSig, "WindChan0"						; also send to the reverb
 endin
 
 
@@ -563,7 +599,7 @@ aR	=  aWXre - aWXim - 0.3277*aYre
 
 instr 799
 
-; 	 ioffset init -3
+ 	 ioffset init -3
 
 ;   ival tab_i 26+ioffset-1, gitmp1
 ; chnset ival, "Answer1"
@@ -594,27 +630,38 @@ instr 799
 
 aRetIn		chnget	"StepsChan0"
 
-kSndX       chnget	"StepsX0"
-kSndY       chnget	"StepsY0"
-kSndZ       chnget	"StepsZ0"
+; kSndX       chnget	"StepsX0"
+; kSndY       chnget	"StepsY0"
+; kSndZ       chnget	"StepsZ0"
 
 aRetIn      =  aRetIn + 0.000001 * 0.000001     ; avoid underflows
 
 imode   =  1    ; change this to 3 for 8 spk in a cube,
-				; or 1 for simple stereo
-idist	=  1
+
+			; or 1 for simple stereo
+idist	= 0.5  ;overrided by ftgen
+;idist = sqrt(abs(gkSndX*gkSndX) + abs(gkSndY*gkSndY) + abs(gkSndZ*gkSndZ))
+;tablew  idist, 10+ioffset-3, gitmp1
+;chnset idist, "Answer7"
 iovr	=  2
 
-aW, aX, aY, aZ  spat3d aRetIn, kSndX, kSndY, kSndZ, idist, 1, imode, 2, iovr
+imdel 	=  2  ;imdel = (R + 1) * sqrt(W*W + H*H + D*D) / 340.0
+
+aW, aX, aY, aZ  spat3d aRetIn, gkSndX, gkSndY, gkSndZ, idist, 1, imode, imdel, iovr
 
 aW      =  aW * 1.4142
 
 ; stereo
-; aL     =  aW + aY              /* left                 */
-; aR     =  aW - aY              /* right                */
+;aL     =  aW + aY              /* left                 */
+;aR     =  aW - aY              /* right                */
 
 aL, aR bformdec1 1, aW, aX, aY, aZ
 
+; ifac	=	.5 * sqrt(2)
+; 	aL	=	ifac * (a1 + a2)
+; 	aR	=	ifac * (a1 - a2)
+
+	
 ; aWre, aWim	hilbert aW
 ; aXre, aXim	hilbert aX
 ; aYre, aYim	hilbert aY
@@ -625,10 +672,63 @@ aL, aR bformdec1 1, aW, aX, aY, aZ
 ; aL	=  aWXre + aWXim + 0.3277*aYre
 ; aR	=  aWXre - aWXim - 0.3277*aYre
 
-	outs aL, aR
+	outs aL*50, aR*50
 
 	chnclear	"StepsChan0"
 	;turnoff
+	endin
+
+instr WINDSPAT
+
+aRetIn		chnget	"WindChan0"
+
+aRetIn      =  aRetIn + 0.000001 * 0.000001     ; avoid underflows
+
+imode   =  1    ; change this to 3 for 8 spk in a cube,
+
+chnset gkWndX, "Answer1"
+
+chnset gkWndY, "Answer2"
+
+chnset gkWndZ, "Answer3"
+
+			; or 1 for simple stereo
+idist	= 0.5  ;overrided by ftgen
+;idist = sqrt(abs(gkSndX*gkSndX) + abs(gkSndY*gkSndY) + abs(gkSndZ*gkSndZ))
+;tablew  idist, 10+ioffset-3, gitmp1
+;chnset idist, "Answer7"
+iovr	=  2
+
+imdel 	=  2  ;imdel = (R + 1) * sqrt(W*W + H*H + D*D) / 340.0
+
+aW, aX, aY, aZ  spat3d aRetIn, gkWndX, gkWndY, gkWndZ, idist, 1, imode, imdel, iovr
+
+aW      =  aW * 1.4142
+
+; stereo
+;aL     =  aW + aY              /* left                 */
+;aR     =  aW - aY              /* right                */
+
+aL, aR bformdec1 1, aW, aX, aY, aZ
+
+; ifac	=	.5 * sqrt(2)
+; 	aL	=	ifac * (a1 + a2)
+; 	aR	=	ifac * (a1 - a2)
+
+	
+; aWre, aWim	hilbert aW
+; aXre, aXim	hilbert aX
+; aYre, aYim	hilbert aY
+
+; aWXre	=  0.0928*aXre + 0.4699*aWre
+; aWXim	=  0.2550*aXim - 0.1710*aWim
+
+; aL	=  aWXre + aWXim + 0.3277*aYre
+; aR	=  aWXre - aWXim - 0.3277*aYre
+
+	outs aL*10, aR*10
+
+	chnclear	"WindChan0"
 	endin
 
 instr 800
